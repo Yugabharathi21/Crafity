@@ -84,6 +84,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contact
 
-If you have any questions or feedback, please contact us at support@craftsman.com.
+If you have any questions or feedback, please contact us at discord - sodaputtiplayz21
 
 Thank you for using the Craftsman website!
