@@ -16,7 +16,7 @@ const Navbar: React.FC = () => {
             <h1>Craftify</h1>
           </a>
         </div>
-
+        
         <div className="navbar-search">
           <div className="search-container">
             <input type="text" placeholder="Search for handcrafted items..." />
