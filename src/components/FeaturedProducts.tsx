@@ -43,14 +43,6 @@ const FeaturedProducts: React.FC = () => {
       price: 49.99,
       image: "https://images.unsplash.com/photo-1544816155-12df9643f363?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
       category: "Leatherwork"
-    },
-    {
-      id: 5,
-      name: "Handmade Leather Journal",
-      artisan: "Craft & Stitch",
-      price: 49.99,
-      image: "https://images.unsplash.com/photo-1544816155-12df9643f363?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-      category: "Leatherwork"
     }
   ];
 
