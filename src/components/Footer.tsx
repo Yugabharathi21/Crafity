@@ -67,7 +67,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} Craftify. All rights reserved. <a href='https://github.com/Yugabharathi21'>Yugabharathi J</a>, <a> Soundariya M</a>,<a> Soumya</a></p>
+          <p>&copy; {new Date().getFullYear()} Craftify. All rights reserved. <a href='https://github.com/Yugabharathi21'>Yugabharathi J</a>, <a> Soundariya M</a>,<a> Soumya K</a></p>
           <div className="footer-bottom-links">
             <a href="/privacy">Privacy Policy</a>
             <a href="/terms">Terms of Service</a>
