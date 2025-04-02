@@ -81,6 +81,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-top: 1rem;
 }
 
 .checkbox-group input[type="checkbox"] {
@@ -120,6 +121,7 @@
 .auth-redirect {
   text-align: center;
   color: var(--text-color);
+  margin-top: 1.5rem;
 }
 
 .auth-redirect a {
