@@ -16,6 +16,7 @@ import ProductDetails from './pages/ProductDetails';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
 import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './components/AuthProvider';
 import { SignIn } from './components/SignIn';
 import { SignUp } from './components/SignUp';
 
@@ -46,9 +47,9 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/dashboard/*" element={
-            <ProtectedRoute>
+            <AuthProvider>
               <Dashboard />
-            </ProtectedRoute>
+            </AuthProvider>
           } />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
