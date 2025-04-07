@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import connectDB from './config/db.js';
 import userRoutes from './routes/userRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import productRoutes from './routes/productRoutes.js';
@@ -11,9 +10,6 @@ import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 
 // Load env vars
 dotenv.config({ path: './backend/.env' });
-
-// Connect to MongoDB
-connectDB();
 
 const app = express();
 
