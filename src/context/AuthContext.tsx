@@ -1,38 +1,24 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import api from '../utils/api';
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  isArtisan: boolean;
-  profileImage?: string;
-  bio?: string;
-  location?: string;
-  specialty?: string;
-  token: string;
-}
+import { User } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, isArtisan: boolean) => Promise<void>;
-  logout: () => void;
-  updateProfile: (userData: Partial<User>) => Promise<void>;
-  uploadProfileImage: (file: File) => Promise<string>;
+  register: (email: string, password: string, name: string, isArtisan: boolean) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
-  loading: false,
+  loading: true,
   error: null,
   login: async () => {},
   register: async () => {},
-  logout: () => {},
-  updateProfile: async () => {},
-  uploadProfileImage: async () => '',
+  logout: async () => {},
 });
 
 interface AuthProviderProps {
@@ -45,11 +31,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const userFromStorage = localStorage.getItem('user');
-    if (userFromStorage) {
-      setUser(JSON.parse(userFromStorage));
-    }
-    setLoading(false);
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Listen for changes on auth state
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -57,87 +51,88 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
       
-      const { data } = await api.post('/users/login', { email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
       
-      setUser(data);
-      localStorage.setItem('user', JSON.stringify(data));
+      toast.success('Successfully logged in!');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred during login');
+      setError(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (name: string, email: string, password: string, isArtisan: boolean) => {
+  const register = async (email: string, password: string, name: string, isArtisan: boolean) => {
     try {
       setLoading(true);
       setError(null);
-      
-      const { data } = await api.post('/users', { name, email, password, isArtisan });
-      
-      setUser(data);
-      localStorage.setItem('user', JSON.stringify(data));
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred during registration');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-  };
-
-  const updateProfile = async (userData: Partial<User>) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const { data } = await api.put('/users/profile', userData);
-      
-      setUser(data);
-      localStorage.setItem('user', JSON.stringify(data));
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred while updating profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const uploadProfileImage = async (file: File): Promise<string> => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const formData = new FormData();
-      formData.append('image', file);
-      
-      const { data } = await api.post('/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+      // Sign up the user
+      const { error: signUpError, data } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            is_artisan: isArtisan,
+          },
         },
       });
-      
-      return data.imageUrl;
+
+      if (signUpError) throw signUpError;
+
+      // Create profile in profiles table
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: data.user.id,
+              name,
+              is_artisan: isArtisan,
+              email,
+            },
+          ]);
+
+        if (profileError) throw profileError;
+      }
+
+      toast.success('Registration successful!');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Image upload failed');
-      throw new Error('Image upload failed');
+      setError(err.message);
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      toast.success('Successfully logged out!');
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      error, 
-      login, 
-      register, 
-      logout, 
-      updateProfile,
-      uploadProfileImage 
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      error,
+      login,
+      register,
+      logout,
     }}>
       {children}
     </AuthContext.Provider>
@@ -145,5 +140,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 };
 
 export const useAuth = () => {
-  return React.useContext(AuthContext);
+  const context = React.useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

@@ -1,0 +1,628 @@
+/* Shop Page Styles */
+.shop-page {
+  min-height: calc(100vh - 70px - 300px);
+  padding-bottom: 5rem;
+}
+
+.shop-header {
+  background-color: var(--secondary-color);
+  padding: 4rem 0;
+  text-align: center;
+  color: var(--text-color);
+  margin-bottom: 3rem;
+}
+
+.shop-header h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.shop-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  gap: 1.5rem;
+}
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  background: none;
+  border: 1px solid var(--secondary-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.filter-toggle:hover {
+  background-color: var(--secondary-color);
+}
+
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.sort-controls select {
+  padding: 0.875rem 2.75rem 0.875rem 1.25rem;
+  border: 1px solid var(--secondary-color);
+  border-radius: 6px;
+  appearance: none;
+  background: none;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.sort-controls svg {
+  position: absolute;
+  right: 1.25rem;
+  pointer-events: none;
+}
+
+.shop-layout {
+  display: grid;
+  gap: 2.5rem;
+  margin: 2rem 0;
+}
+
+.shop-filters {
+  background-color: var(--white);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  height: fit-content;
+}
+
+.filter-section {
+  margin-bottom: 2rem;
+}
+
+.filter-section:last-child {
+  margin-bottom: 0;
+}
+
+.filter-section h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary-color);
+}
+
+.apply-filters {
+  width: 100%;
+  margin-top: 2rem;
+}
+
+/* Categories Page Styles */
+.categories-page {
+  min-height: calc(100vh - 70px - 300px);
+  padding-bottom: 5rem;
+}
+
+.categories-header {
+  background-color: var(--secondary-color);
+  padding: 4rem 0;
+  text-align: center;
+  color: var(--text-color);
+  margin-bottom: 3rem;
+}
+
+.categories-header h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.featured-categories,
+.all-categories {
+  margin: 5rem 0;
+}
+
+.featured-categories h2,
+.all-categories h2 {
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2.5rem;
+}
+
+.categories-grid.featured {
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+
+.category-card {
+  background-color: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.category-card:hover {
+  transform: translateY(-5px);
+}
+
+.category-card.featured {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.category-image {
+  height: 250px;
+  overflow: hidden;
+}
+
+.category-card.featured .category-image {
+  height: 100%;
+}
+
+.category-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition);
+}
+
+.category-card:hover .category-image img {
+  transform: scale(1.05);
+}
+
+.category-content {
+  padding: 2rem;
+}
+
+.category-content h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.category-content p {
+  margin-bottom: 1.5rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  line-height: 1.6;
+}
+
+.item-count {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border-radius: 25px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Artisans Page Styles */
+.artisans-page {
+  min-height: calc(100vh - 70px - 300px);
+  padding-bottom: 5rem;
+}
+
+.artisans-header {
+  background-color: var(--secondary-color);
+  padding: 4rem 0;
+  text-align: center;
+  color: var(--text-color);
+  margin-bottom: 3rem;
+}
+
+.artisans-header h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.featured-artisans,
+.all-artisans {
+  margin: 5rem 0;
+}
+
+.featured-artisans h2,
+.all-artisans h2 {
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.artisans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2.5rem;
+}
+
+.artisans-grid.featured {
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+
+.artisan-card {
+  background-color: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.artisan-card:hover {
+  transform: translateY(-5px);
+}
+
+.artisan-card.featured {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.artisan-image {
+  height: 250px;
+  overflow: hidden;
+}
+
+.artisan-card.featured .artisan-image {
+  height: 100%;
+}
+
+.artisan-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artisan-content {
+  padding: 2rem;
+}
+
+.artisan-content h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-color);
+}
+
+.artisan-specialty {
+  color: var(--accent-color);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 1.125rem;
+}
+
+.artisan-location {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.artisan-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.artisan-rating svg {
+  color: #ffd700;
+}
+
+.reviews {
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.artisan-bio {
+  margin-bottom: 2rem;
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+.artisan-stats {
+  display: flex;
+  gap: 3rem;
+  margin-bottom: 2rem;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat .value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  margin-bottom: 0.375rem;
+}
+
+.stat .label {
+  font-size: 0.875rem;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.artisan-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.artisan-actions button {
+  flex: 1;
+}
+
+/* About Page Styles */
+.about-page {
+  min-height: calc(100vh - 70px - 300px);
+}
+
+.about-hero {
+  background-color: var(--secondary-color);
+  padding: 5rem 0;
+  text-align: center;
+  color: var(--text-color);
+  margin-bottom: 3rem;
+}
+
+.about-hero h1 {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+}
+
+.about-section {
+  padding: 5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.about-section:last-child {
+  border-bottom: none;
+}
+
+.about-section h2 {
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.mission-content {
+  display: grid;
+  gap: 3rem;
+}
+
+.mission-image {
+  border-radius: 12px;
+  overflow: hidden;
+  height: 400px;
+}
+
+.mission-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mission-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mission-text p {
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.5rem;
+}
+
+.value-card {
+  text-align: center;
+  padding: 2.5rem;
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.value-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(58, 90, 64, 0.1);
+  border-radius: 50%;
+  color: var(--primary-color);
+}
+
+.value-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.value-card p {
+  color: var(--text-color);
+  opacity: 0.8;
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2.5rem;
+}
+
+.team-card {
+  background-color: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.team-image {
+  height: 350px;
+}
+
+.team-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-info {
+  padding: 2rem;
+}
+
+.team-info h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
+
+.team-role {
+  color: var(--accent-color);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+}
+
+.team-bio {
+  line-height: 1.7;
+  color: var(--text-color);
+  opacity: 0.8;
+  font-size: 1rem;
+}
+
+.join-us {
+  text-align: center;
+  background-color: var(--secondary-color);
+  padding: 5rem 0;
+  margin: -5rem 0;
+  color: var(--text-color);
+}
+
+.join-content {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.join-content h2 {
+  margin-bottom: 1.5rem;
+}
+
+.join-content p {
+  font-size: 1.25rem;
+  margin-bottom: 2.5rem;
+  line-height: 1.7;
+}
+
+.join-buttons {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+/* Responsive Adjustments */
+@media (min-width: 768px) {
+  .shop-layout {
+    grid-template-columns: 280px 1fr;
+  }
+  
+  .mission-content {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .shop-filters {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100vh;
+    z-index: 1000;
+    transition: var(--transition);
+    overflow-y: auto;
+  }
+  
+  .shop-filters.active {
+    left: 0;
+  }
+  
+  .category-card.featured,
+  .artisan-card.featured {
+    grid-template-columns: 1fr;
+  }
+  
+  .join-buttons {
+    flex-direction: column;
+  }
+  
+  .about-hero h1 {
+    font-size: 2.75rem;
+  }
+  
+  .about-section h2 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .shop-header h1,
+  .categories-header h1,
+  .artisans-header h1 {
+    font-size: 2.25rem;
+  }
+  
+  .featured-categories h2,
+  .all-categories h2,
+  .featured-artisans h2,
+  .all-artisans h2 {
+    font-size: 2rem;
+  }
+  
+  .sort-controls select {
+    min-width: 160px;
+  }
+  
+  .artisan-stats {
+    gap: 2rem;
+  }
+  
+  .value-card {
+    padding: 2rem;
+  }
+}

@@ -1,30 +1,85 @@
-import axios from 'axios';
+import { supabase } from '../lib/supabase';
 
-const API_URL = 'http://localhost:5000/api';
+// Products
+export const getProducts = async () => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*, artisan:profiles(id, name)');
+  
+  if (error) throw error;
+  return data;
+};
 
-// Create axios instance with base URL
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+export const getProductById = async (id: string) => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*, artisan:profiles(id, name)')
+    .eq('id', id)
+    .single();
+  
+  if (error) throw error;
+  return data;
+};
 
-// Add request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    const userInfo = localStorage.getItem('user');
-    if (userInfo) {
-      const { token } = JSON.parse(userInfo);
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// Profile
+export const updateProfile = async (profile: any) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(profile)
+    .eq('id', supabase.auth.getUser().then(({ data }) => data.user?.id))
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+};
 
-export default api;
+// Orders
+export const createOrder = async (orderData: any) => {
+  const { data, error } = await supabase
+    .from('orders')
+    .insert([orderData])
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+};
+
+export const getOrders = async () => {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*, order_items(*, product:products(*))')
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  return data;
+};
+
+// Storage
+export const uploadImage = async (file: File) => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Math.random()}.${fileExt}`;
+  const filePath = `${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('product-images')
+    .upload(filePath, file);
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage
+    .from('product-images')
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+};
+
+export default {
+  getProducts,
+  getProductById,
+  updateProfile,
+  createOrder,
+  getOrders,
+  uploadImage,
+};

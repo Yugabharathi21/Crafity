@@ -6,9 +6,11 @@ import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import userRoutes from './routes/userRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import productRoutes from './routes/productRoutes.js';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 
-dotenv.config();
+// Load env vars
+dotenv.config({ path: './backend/.env' });
 
 // Connect to MongoDB
 connectDB();
@@ -33,6 +35,7 @@ if (!fs.existsSync(uploadsDir)) {
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/products', productRoutes);
 
 // Default route
 app.get('/', (req, res) => {

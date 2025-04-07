@@ -10,6 +10,7 @@ const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isArtisan, setIsArtisan] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [emailError, setEmailError] = useState('');
   
   const { register, user, loading, error } = useAuth();
   const navigate = useNavigate();
@@ -19,6 +20,16 @@ const Register: React.FC = () => {
       navigate('/dashboard');
     }
   }, [user, navigate]);
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailError('Please enter a valid email address');
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
 
   const validatePassword = () => {
     if (password !== confirmPassword) {
@@ -36,95 +47,116 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validatePassword()) return;
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword();
     
-    await register(name, email, password, isArtisan);
+    if (!isEmailValid || !isPasswordValid) {
+      return;
+    }
+    
+    await register(name, email.trim(), password, isArtisan);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-100">
-      <div className="max-w-4xl w-full bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
-        <div className="flex-1 p-6 md:p-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Create an Account</h1>
-          <p className="text-gray-600 mb-6">Join our community of craft enthusiasts and artisans.</p>
+    <div className="auth-page">
+      <div className="auth-container">
+        <div className="auth-form-container">
+          <h1 className="auth-title">Create an Account</h1>
+          <p className="auth-subtitle">Join our community of craft enthusiasts and artisans.</p>
           
-          {error && <div className="bg-red-100 text-red-600 p-3 rounded mb-4">{error}</div>}
+          {error && <div className="auth-error">{error}</div>}
           
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Full Name</label>
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="name">Full Name</label>
               <input
                 type="text"
-                className="w-full p-2 border border-gray-300 rounded"
+                id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
                 placeholder="Enter your full name"
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
             
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Email</label>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
               <input
                 type="email"
-                className="w-full p-2 border border-gray-300 rounded"
+                id="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (emailError) validateEmail(e.target.value);
+                }}
                 required
                 placeholder="Enter your email"
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
+              {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
             </div>
             
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Password</label>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
               <input
                 type="password"
-                className="w-full p-2 border border-gray-300 rounded"
+                id="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (passwordError) validatePassword();
+                }}
                 required
                 placeholder="Create a password"
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
             
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">Confirm Password</label>
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirm Password</label>
               <input
                 type="password"
-                className="w-full p-2 border border-gray-300 rounded"
+                id="confirmPassword"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (passwordError) validatePassword();
+                }}
                 required
                 placeholder="Confirm your password"
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="form-group checkbox-group">
               <input
                 type="checkbox"
                 id="isArtisan"
                 checked={isArtisan}
                 onChange={(e) => setIsArtisan(e.target.checked)}
-                className="w-4 h-4 text-primary focus:ring-primary"
+                className="mr-2"
               />
-              <label htmlFor="isArtisan" className="text-gray-700">I am an artisan/craftsperson</label>
+              <label htmlFor="isArtisan">I am an artisan/craftsperson</label>
             </div>
             
-            <div className="mt-4">
-              <Button type="primary" className="w-full py-2" disabled={loading}>
+            <div className="form-action">
+              <Button type="primary" className="auth-button" disabled={loading}>
                 {loading ? 'Creating Account...' : 'Sign Up'}
               </Button>
             </div>
           </form>
           
-          <p className="text-center text-gray-600 mt-4">Already have an account? <Link to="/login" className="text-primary font-semibold hover:underline">Login</Link></p>
+          <div className="auth-redirect">
+            <p>Already have an account? <Link to="/login" className="text-primary-600 hover:text-primary-700">Login</Link></p>
+          </div>
         </div>
         
-        <div className="hidden md:block md:w-1/2">
-          <img
-            src="https://images.unsplash.com/photo-1621600411688-4be93c2c1208?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
-            alt="Handcrafted items"
+        <div className="auth-image">
+          <img 
+            src="https://images.unsplash.com/photo-1621600411688-4be93c2c1208?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+            alt="Handcrafted items" 
             className="w-full h-full object-cover"
           />
         </div>

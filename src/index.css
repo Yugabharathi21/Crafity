@@ -31,7 +31,7 @@ body {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 2rem;
 }
 
 img {
@@ -47,11 +47,11 @@ a {
 /* Button Styles */
 .btn {
   display: inline-block;
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.75rem;
   background-color: var(--primary-color);
   color: var(--white);
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
@@ -77,12 +77,12 @@ a {
 
 /* Section Styles */
 .section {
-  padding: 4rem 0;
+  padding: 5rem 0;
 }
 
 .section-title {
-  font-size: 2rem;
-  margin-bottom: 2rem;
+  font-size: 2.25rem;
+  margin-bottom: 3rem;
   text-align: center;
   position: relative;
 }
@@ -90,10 +90,52 @@ a {
 .section-title::after {
   content: '';
   position: absolute;
-  bottom: -10px;
+  bottom: -12px;
   left: 50%;
   transform: translateX(-50%);
   width: 80px;
   height: 3px;
   background-color: var(--accent-color);
+}
+
+/* App Layout */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+  padding: 2rem 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+
+  .section {
+    padding: 4rem 0;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    margin-bottom: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .section {
+    padding: 3rem 0;
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+  }
 }

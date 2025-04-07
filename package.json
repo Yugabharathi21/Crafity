@@ -7,24 +7,20 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "server": "node backend/server.js"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "axios": "^1.6.7",
-    "bcryptjs": "^2.4.3",
-    "cloudinary": "^2.0.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "express-async-handler": "^1.2.0",
-    "jsonwebtoken": "^9.0.2",
+    "@reduxjs/toolkit": "^2.2.1",
+    "@stripe/stripe-js": "^3.0.7",
+    "@supabase/supabase-js": "^2.39.7",
+    "cohere-ai": "^7.7.5",
     "lucide-react": "^0.344.0",
-    "mongoose": "^8.11.0",
-    "multer": "^1.4.5-lts.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.22.3"
+    "react-redux": "^9.1.0",
+    "react-router-dom": "^6.22.3",
+    "react-hot-toast": "^2.4.1",
+    "react-loading-skeleton": "^3.4.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
