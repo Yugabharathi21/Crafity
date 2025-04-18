@@ -13,17 +13,18 @@ interface UserProfile {
   created_at: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   loading: boolean;
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
-  signUp: (email: string, password: string, profile: Partial<UserProfile>) => Promise<void>;
-  signOut: () => Promise<void>;
+  signUp: (email: string, password: string, userData: any) => Promise<void>;
+  logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   signInWithProvider: (provider: Provider) => Promise<void>;
   updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
+  uploadProfileImage: (file: File) => Promise<string>;
   error: string | null;
 }
 
@@ -93,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string, profileData: Partial<UserProfile>) => {
+  const signUp = async (email: string, password: string, userData: any) => {
     try {
       setError(null);
       const { error: signUpError, data } = await supabase.auth.signUp({
@@ -111,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .insert([
             {
               id: data.user.id,
-              ...profileData,
+              ...userData,
               created_at: new Date().toISOString(),
             },
           ]);
@@ -127,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signOut = async () => {
+  const logout = async () => {
     try {
       setError(null);
       const { error } = await supabase.auth.signOut();
@@ -207,17 +208,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const uploadProfileImage = async (file: File) => {
+    // Implementation of uploadProfileImage function
+    // This is a placeholder and should be implemented based on your specific requirements
+    throw new Error('Upload profile image functionality not implemented');
+  };
+
   const value = {
     user,
     profile,
     loading,
     signIn,
     signUp,
-    signOut,
+    logout,
     resetPassword,
     updatePassword,
     signInWithProvider,
     updateProfile,
+    uploadProfileImage,
     error,
   };
 
@@ -226,7 +234,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

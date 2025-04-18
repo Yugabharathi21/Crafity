@@ -16,6 +16,7 @@ import { supabase, supabaseAdmin } from './config/supabaseClient.js';
 import userRoutes from './routes/userRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import productRoutes from './routes/productRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 
 const app = express();
@@ -173,6 +174,7 @@ app.post('/api/auth/signout', async (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
 
 // Default route
 app.get('/', (req, res) => {

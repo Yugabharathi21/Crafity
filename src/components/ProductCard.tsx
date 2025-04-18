@@ -4,47 +4,59 @@ import { useDispatch } from 'react-redux';
 import { Star, ShoppingCart, Heart } from 'lucide-react';
 import { addToCart } from '../store/slices/cartSlice';
 import toast from 'react-hot-toast';
+import { AppDispatch } from '../store/store';
 
-interface ProductCardProps {
-  product: {
+interface Product {
+  id: string;
+  name: string;
+  artisan: {
     _id: string;
     name: string;
-    artisan: {
-      _id: string;
-      name: string;
-    };
-    price: number;
-    image: string;
-    category: string;
-    rating: number;
-    numReviews: number;
-    countInStock: number;
   };
+  price: number;
+  image: string;
+  category: string;
+  rating: number;
+  numReviews: number;
+  countInStock: number;
+}
+
+interface ProductCardProps {
+  product: Product;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
-  const handleAddToCart = () => {
-    if (product.countInStock > 0) {
-      dispatch(addToCart({
-        id: product._id,
+  const handleAddToCart = async () => {
+    try {
+      if (!product.countInStock) {
+        toast.error('Sorry, this product is out of stock');
+        return;
+      }
+
+      console.log('Adding product to cart:', {
+        id: product.id,
         name: product.name,
-        image: product.image,
-        price: product.price,
-        quantity: 1,
         countInStock: product.countInStock
-      }));
+      });
+
+      await dispatch(addToCart({
+        product_id: product.id,
+        quantity: 1
+      })).unwrap();
+
       toast.success('Added to cart');
-    } else {
-      toast.error('Product is out of stock');
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add item to cart');
     }
   };
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
       <div className="relative">
-        <Link to={`/product/${product._id}`}>
+        <Link to={`/product/${product.id}`}>
           <img 
             src={product.image} 
             alt={product.name}
@@ -64,7 +76,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
       <div className="p-5">
         <Link 
-          to={`/product/${product._id}`}
+          to={`/product/${product.id}`}
           className="block mb-2"
         >
           <h3 className="text-lg font-semibold text-gray-900 hover:text-primary-600 transition-colors duration-200">

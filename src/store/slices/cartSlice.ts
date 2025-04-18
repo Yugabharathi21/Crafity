@@ -61,18 +61,138 @@ export const addToCart = createAsyncThunk(
   'cart/addItem',
   async (item: Partial<CartItem>, { rejectWithValue }) => {
     try {
-      const { data, error } = await supabase
-        .from('cart_items')
-        .upsert({
-          product_id: item.product_id,
-          quantity: item.quantity,
-        })
-        .select()
+      console.log('Adding to cart:', item);
+      
+      // Get the current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('User error:', userError);
+        throw userError;
+      }
+      
+      if (!user) {
+        console.error('No authenticated user');
+        throw new Error('User not authenticated');
+      }
+      
+      console.log('User authenticated:', user.id);
+      
+      // First, get or create the user's cart
+      let { data: cart, error: cartError } = await supabase
+        .from('carts')
+        .select('id')
+        .eq('user_id', user.id)
         .single();
-
-      if (error) throw error;
-      return data;
+        
+      if (cartError) {
+        console.error('Cart error:', cartError);
+        
+        if (cartError.code === 'PGRST116') {
+          // Cart doesn't exist, create one
+          console.log('Creating new cart for user');
+          const { data: newCart, error: createError } = await supabase
+            .from('carts')
+            .insert({ user_id: user.id })
+            .select()
+            .single();
+            
+          if (createError) {
+            console.error('Create cart error:', createError);
+            throw createError;
+          }
+          
+          if (!newCart) {
+            console.error('Failed to create cart');
+            throw new Error('Failed to create cart');
+          }
+          
+          cart = newCart;
+          console.log('New cart created:', cart);
+        } else {
+          throw cartError;
+        }
+      }
+      
+      if (!cart) {
+        console.error('Cart not found');
+        throw new Error('Cart not found');
+      }
+      
+      console.log('Using cart:', cart.id);
+      
+      // Check if item already exists in cart
+      const { data: existingItem, error: checkError } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('cart_id', cart.id)
+        .eq('product_id', item.product_id)
+        .single();
+        
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Check item error:', checkError);
+        throw checkError;
+      }
+      
+      let result;
+      if (existingItem) {
+        // Update existing item
+        console.log('Updating existing item:', existingItem.id);
+        const { data, error } = await supabase
+          .from('cart_items')
+          .update({ quantity: existingItem.quantity + (item.quantity || 1) })
+          .eq('id', existingItem.id)
+          .select(`
+            *,
+            product:products(
+              name,
+              image,
+              price,
+              count_in_stock
+            )
+          `)
+          .single();
+          
+        if (error) {
+          console.error('Update item error:', error);
+          throw error;
+        }
+        
+        result = data;
+        console.log('Item updated:', result);
+      } else {
+        // Add new item
+        console.log('Adding new item to cart');
+        const { data, error } = await supabase
+          .from('cart_items')
+          .insert({
+            cart_id: cart.id,
+            product_id: item.product_id,
+            quantity: item.quantity || 1
+          })
+          .select(`
+            *,
+            product:products(
+              name,
+              image,
+              price,
+              count_in_stock
+            )
+          `)
+          .single();
+          
+        if (error) {
+          console.error('Insert item error:', error);
+          throw error;
+        }
+        
+        result = data;
+        console.log('New item added:', result);
+      }
+      
+      return result;
     } catch (error: any) {
+      console.error('Error adding to cart:', error);
       return rejectWithValue(error.message);
     }
   }
@@ -143,10 +263,19 @@ const cartSlice = createSlice({
         const existingItem = state.items.find(
           (item) => item.product_id === action.payload.product_id
         );
+        
         if (existingItem) {
           existingItem.quantity = action.payload.quantity;
         } else {
-          state.items.push(action.payload);
+          state.items.push({
+            id: action.payload.id,
+            product_id: action.payload.product_id,
+            name: action.payload.product.name,
+            image: action.payload.product.image,
+            price: action.payload.product.price,
+            quantity: action.payload.quantity,
+            countInStock: action.payload.product.count_in_stock
+          });
         }
         cartSlice.caseReducers.updateCartPrices(state);
         toast.success('Item added to cart');
