@@ -3,17 +3,44 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #3a5a40;
-  --secondary-color: #a3b18a;
-  --accent-color: #588157;
-  --text-color: #344e41;
-  --light-color: #dad7cd;
-  --white: #ffffff;
-  --black: #1a1a1a;
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --primary-color: #4F46E5;
+  --secondary-color: #E5E7EB;
+  --accent-color: #EF4444;
+  --text-color: #374151;
+  --white: #FFFFFF;
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --transition: all 0.3s ease;
 }
 
+@layer base {
+  html {
+    @apply h-full bg-gray-50;
+  }
+  
+  body {
+    @apply h-full m-0 font-sans text-gray-900 antialiased;
+  }
+  
+  #root {
+    @apply h-full;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
+  }
+
+  .btn-secondary {
+    @apply text-indigo-700 bg-indigo-100 hover:bg-indigo-200;
+  }
+
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* Base styles */
 * {
   margin: 0;
   padding: 0;
@@ -21,22 +48,13 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   color: var(--text-color);
-  background-color: var(--light-color);
   line-height: 1.6;
-}
-
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-}
-
-img {
-  max-width: 100%;
-  height: auto;
 }
 
 a {
@@ -44,98 +62,27 @@ a {
   color: inherit;
 }
 
-/* Button Styles */
-.btn {
-  display: inline-block;
-  padding: 0.875rem 1.75rem;
-  background-color: var(--primary-color);
-  color: var(--white);
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  text-align: center;
-}
-
-.btn:hover {
-  background-color: var(--accent-color);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
-}
-
-.btn-secondary {
-  background-color: transparent;
-  border: 2px solid var(--primary-color);
-  color: var(--primary-color);
-}
-
-.btn-secondary:hover {
-  background-color: var(--primary-color);
-  color: var(--white);
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Section Styles */
 .section {
-  padding: 5rem 0;
+  @apply py-12 sm:py-16 lg:py-20;
 }
 
 .section-title {
-  font-size: 2.25rem;
-  margin-bottom: 3rem;
-  text-align: center;
-  position: relative;
-}
-
-.section-title::after {
-  content: '';
-  position: absolute;
-  bottom: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 3px;
-  background-color: var(--accent-color);
-}
-
-/* App Layout */
-.app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-main {
-  flex: 1;
-  padding: 2rem 0;
+  @apply text-3xl font-extrabold text-gray-900 sm:text-4xl text-center mb-8;
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-  .container {
-    padding: 0 1.5rem;
-  }
-
   .section {
-    padding: 4rem 0;
+    @apply py-8 sm:py-12;
   }
 
   .section-title {
-    font-size: 2rem;
-    margin-bottom: 2.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 0 1rem;
-  }
-
-  .section {
-    padding: 3rem 0;
-  }
-
-  .btn {
-    padding: 0.75rem 1.5rem;
+    @apply text-2xl sm:text-3xl mb-6;
   }
 }

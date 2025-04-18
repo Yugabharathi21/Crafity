@@ -1,128 +1,81 @@
 import React from 'react';
-import { Heart, Users, Shield, Truck } from 'lucide-react';
-import Button from '../components/Button';
+import { Link } from 'react-router-dom';
 
 const About: React.FC = () => {
-  const values = [
-    {
-      icon: <Heart size={32} />,
-      title: "Handcrafted with Love",
-      description: "Every item in our marketplace is created with passion and attention to detail by skilled artisans."
-    },
-    {
-      icon: <Users size={32} />,
-      title: "Supporting Artisans",
-      description: "We provide a platform for artisans to showcase their work and connect with customers who value handcrafted quality."
-    },
-    {
-      icon: <Shield size={32} />,
-      title: "Quality Guaranteed",
-      description: "All products are carefully reviewed to ensure they meet our high standards of craftsmanship."
-    },
-    {
-      icon: <Truck size={32} />,
-      title: "Sustainable Practices",
-      description: "We promote eco-friendly materials and sustainable production methods."
-    }
-  ];
-
-  const team = [
-    {
-      name: "Sarah Johnson",
-      role: "Founder & CEO",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-      bio: "Sarah founded Craftify with a vision to create a platform that celebrates artisanal craftsmanship."
-    },
-    {
-      name: "Michael Chen",
-      role: "Head of Product",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-      bio: "Michael ensures that our platform provides the best experience for both artisans and customers."
-    },
-    {
-      name: "Emily Rodriguez",
-      role: "Creative Director",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-      bio: "Emily leads our creative team and helps artisans showcase their work beautifully."
-    }
-  ];
-
   return (
-    <div className="about-page">
-      <div className="about-hero">
-        <div className="container">
-          <h1>Our Story</h1>
-          <p>Connecting artisans with people who appreciate handcrafted quality</p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            About Craftsman
+          </h1>
+          <p className="mt-4 text-lg text-gray-600">
+            Connecting artisans with art lovers worldwide
+          </p>
         </div>
-      </div>
 
-      <div className="container">
-        <section className="about-section mission">
-          <h2>Our Mission</h2>
-          <div className="mission-content">
-            <div className="mission-image">
-              <img 
-                src="https://images.unsplash.com/photo-1452860606245-08befc0ff44b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80" 
-                alt="Artisan working"
-              />
-            </div>
-            <div className="mission-text">
-              <p>
-                At Craftify, we believe in the power of handmade. Our mission is to create a thriving marketplace where skilled artisans can showcase their craft and connect with customers who value quality, uniqueness, and traditional craftsmanship.
-              </p>
-              <p>
-                We're committed to preserving traditional crafting techniques while embracing innovation, ensuring that artisanal craftsmanship continues to evolve and flourish in the modern world.
-              </p>
-              <Button type="secondary">Learn More</Button>
-            </div>
-          </div>
-        </section>
+        {/* Mission Statement */}
+        <div className="bg-white rounded-lg shadow-sm p-8 mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h2>
+          <p className="text-gray-600 leading-relaxed">
+            At Craftsman, we believe in preserving and promoting traditional craftsmanship
+            while supporting local artisans. Our platform brings together talented
+            craftspeople and appreciative customers, creating a marketplace where
+            quality handcrafted goods can thrive.
+          </p>
+        </div>
 
-        <section className="about-section values">
-          <h2>Our Values</h2>
-          <div className="values-grid">
-            {values.map((value, index) => (
-              <div className="value-card" key={index}>
-                <div className="value-icon">
-                  {value.icon}
-                </div>
-                <h3>{value.title}</h3>
-                <p>{value.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="about-section team">
-          <h2>Meet Our Team</h2>
-          <div className="team-grid">
-            {team.map((member, index) => (
-              <div className="team-card" key={index}>
-                <div className="team-image">
-                  <img src={member.image} alt={member.name} />
-                </div>
-                <div className="team-info">
-                  <h3>{member.name}</h3>
-                  <p className="team-role">{member.role}</p>
-                  <p className="team-bio">{member.bio}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="about-section join-us">
-          <div className="join-content">
-            <h2>Join Our Community</h2>
-            <p>
-              Whether you're an artisan looking to share your craft or a customer seeking unique, handmade items, we'd love to have you join our community.
+        {/* Values */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Quality</h3>
+            <p className="text-gray-600">
+              We ensure every product meets our high standards of craftsmanship and
+              authenticity.
             </p>
-            <div className="join-buttons">
-              <Button>Become an Artisan</Button>
-              <Button type="secondary">Start Shopping</Button>
-            </div>
           </div>
-        </section>
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Sustainability</h3>
+            <p className="text-gray-600">
+              We promote eco-friendly practices and sustainable materials in all
+              our products.
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Community</h3>
+            <p className="text-gray-600">
+              We foster a community of artisans and customers who share a passion
+              for handmade goods.
+            </p>
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Join Our Community
+          </h2>
+          <p className="text-gray-600 mb-8">
+            Whether you're an artisan looking to showcase your work or a customer
+            seeking unique handcrafted items, we'd love to have you join our
+            community.
+          </p>
+          <div className="space-x-4">
+            <Link
+              to="/signup"
+              className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-md font-medium hover:bg-indigo-700"
+            >
+              Sign Up
+            </Link>
+            <Link
+              to="/shop"
+              className="inline-block bg-white text-indigo-600 px-6 py-3 rounded-md font-medium border border-indigo-600 hover:bg-indigo-50"
+            >
+              Browse Products
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

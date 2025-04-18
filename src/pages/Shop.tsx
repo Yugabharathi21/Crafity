@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Filter, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
+import { useAuth } from '../context/AuthContext';
 
 interface Product {
   _id: string;
@@ -18,6 +19,8 @@ interface Product {
 }
 
 const Shop: React.FC = () => {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const { user } = useAuth();
   const [sortBy, setSortBy] = useState('featured');
   const [showFilters, setShowFilters] = useState(false);
   
@@ -80,46 +83,59 @@ const Shop: React.FC = () => {
     }
   ];
 
+  const categories = [
+    'all',
+    'jewelry',
+    'pottery',
+    'textiles',
+    'woodwork',
+    'glass',
+    'leather',
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold text-gray-900">Shop Handcrafted Items</h1>
-          <p className="mt-2 text-gray-600">Discover unique pieces made by talented artisans</p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-extrabold text-gray-900">Shop</h1>
+          <p className="mt-2 text-sm text-gray-700">
+            Browse our collection of handcrafted items
+          </p>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <button 
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter size={20} />
-            <span>Filters</span>
-          </button>
-
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal size={20} className="text-gray-500" />
-            <select 
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="pl-4 pr-10 py-2 border border-gray-300 rounded-lg appearance-none bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              <option value="featured">Featured</option>
-              <option value="newest">Newest</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
-            </select>
-            <ChevronDown size={16} className="text-gray-500 -ml-8 pointer-events-none" />
+        {/* Filters */}
+        <div className="mb-8">
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                  selectedCategory === category
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
           {products.map(product => (
             <ProductCard key={product._id} product={product} />
           ))}
+        </div>
+
+        {/* Empty State */}
+        <div className="text-center py-12">
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No products found</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Try adjusting your search or filter to find what you're looking for.
+          </p>
         </div>
       </div>
     </div>
