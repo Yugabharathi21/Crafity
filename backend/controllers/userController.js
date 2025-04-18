@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
-import generateToken from '../utils/generateToken.js';
-import User from '../models/userModel.js';
+import { getUserById, updateUserProfile, getUserProfile, createUserProfile } from '../models/userModel.js';
+import { supabase } from '../config/supabaseClient.js';
 
 // @desc    Auth user & get token
 // @route   POST /api/users/login
@@ -8,23 +8,27 @@ import User from '../models/userModel.js';
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+  const { data: { user }, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
 
-  if (user && (await user.matchPassword(password))) {
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isArtisan: user.isArtisan,
-      profileImage: user.profileImage,
-      bio: user.bio,
-      location: user.location,
-      specialty: user.specialty,
-      token: generateToken(user._id),
-    });
-  } else {
+  if (error) {
     res.status(401);
     throw new Error('Invalid email or password');
+  }
+
+  const profile = await getUserProfile(user.id);
+
+  if (profile) {
+    res.json({
+      id: user.id,
+      email: user.email,
+      ...profile,
+    });
+  } else {
+    res.status(404);
+    throw new Error('User profile not found');
   }
 });
 
@@ -32,93 +36,75 @@ const authUser = asyncHandler(async (req, res) => {
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, isArtisan } = req.body;
+  const { email, password, full_name, phone, address, is_artisan } = req.body;
 
-  const userExists = await User.findOne({ email });
-
-  if (userExists) {
-    res.status(400);
-    throw new Error('User already exists');
-  }
-
-  const user = await User.create({
-    name,
+  const { data: { user }, error } = await supabase.auth.signUp({
     email,
     password,
-    isArtisan: isArtisan || false,
   });
 
-  if (user) {
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+
+  const profile = await createUserProfile({
+    id: user.id,
+    full_name,
+    phone,
+    address,
+    is_artisan: is_artisan || false,
+  });
+
+  if (profile) {
     res.status(201).json({
-      _id: user._id,
-      name: user.name,
+      id: user.id,
       email: user.email,
-      isArtisan: user.isArtisan,
-      profileImage: user.profileImage,
-      bio: user.bio,
-      location: user.location,
-      specialty: user.specialty,
-      token: generateToken(user._id),
+      ...profile,
     });
   } else {
     res.status(400);
-    throw new Error('Invalid user data');
+    throw new Error('Failed to create user profile');
   }
 });
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
 // @access  Private
-const getUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+const getUserProfileHandler = asyncHandler(async (req, res) => {
+  const profile = await getUserProfile(req.user.id);
 
-  if (user) {
+  if (profile) {
     res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isArtisan: user.isArtisan,
-      profileImage: user.profileImage,
-      bio: user.bio,
-      location: user.location,
-      specialty: user.specialty,
+      id: req.user.id,
+      email: req.user.email,
+      ...profile,
     });
   } else {
     res.status(404);
-    throw new Error('User not found');
+    throw new Error('User profile not found');
   }
 });
 
 // @desc    Update user profile
 // @route   PUT /api/users/profile
 // @access  Private
-const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+const updateUserProfileHandler = asyncHandler(async (req, res) => {
+  const { full_name, phone, address, avatar_url, is_artisan } = req.body;
 
-  if (user) {
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-    user.profileImage = req.body.profileImage || user.profileImage;
-    user.bio = req.body.bio || user.bio;
-    user.location = req.body.location || user.location;
-    user.specialty = req.body.specialty || user.specialty;
-    
-    if (req.body.password) {
-      user.password = req.body.password;
-    }
+  const updatedProfile = await updateUserProfile(req.user.id, {
+    full_name,
+    phone,
+    address,
+    avatar_url,
+    is_artisan,
+  });
 
-    const updatedUser = await user.save();
-
+  if (updatedProfile) {
     res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      isArtisan: updatedUser.isArtisan,
-      profileImage: updatedUser.profileImage,
-      bio: updatedUser.bio,
-      location: updatedUser.location,
-      specialty: updatedUser.specialty,
-      token: generateToken(updatedUser._id),
+      id: req.user.id,
+      email: req.user.email,
+      ...updatedProfile,
     });
   } else {
     res.status(404);
@@ -126,4 +112,4 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
-export { authUser, registerUser, getUserProfile, updateUserProfile };
+export { authUser, registerUser, getUserProfileHandler as getUserProfile, updateUserProfileHandler as updateUserProfile };
