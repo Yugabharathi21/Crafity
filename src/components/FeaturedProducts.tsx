@@ -1,67 +1,126 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
 import Button from './Button';
+import { searchUnsplashImages, createUnsplashAttribution } from '../utils/unsplash';
+import { Spinner } from './Spinner';
+
+interface Product {
+  id: string;
+  name: string;
+  artisan: {
+    id: string;
+    name: string;
+  };
+  price: number;
+  image: string;
+  imageAttribution?: string;
+  category: string;
+  rating: number;
+  numReviews: number;
+  stock: number;
+}
 
 const FeaturedProducts: React.FC = () => {
-  const products = [
-    {
-      _id: '1',
-      name: "Hand-carved Wooden Bowl",
-      artisan: {
-        _id: 'a1',
-        name: "Thomas Woodcraft"
-      },
-      price: 89.99,
-      image: "https://images.unsplash.com/photo-1635983495219-8256f1e4a663?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-      category: "Woodwork",
-      rating: 4.8,
-      numReviews: 124,
-      countInStock: 10
-    },
-    {
-      _id: '2',
-      name: "Ceramic Vase Set",
-      artisan: {
-        _id: 'a2',
-        name: "Elena Pottery"
-      },
-      price: 129.99,
-      image: "https://images.unsplash.com/photo-1612196808214-b7e239e5f5a5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-      category: "Pottery",
-      rating: 4.9,
-      numReviews: 89,
-      countInStock: 5
-    },
-    {
-      _id: '3',
-      name: "Handwoven Wool Blanket",
-      artisan: {
-        _id: 'a3',
-        name: "Mountain Textiles"
-      },
-      price: 159.99,
-      image: "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-      category: "Textiles",
-      rating: 4.7,
-      numReviews: 156,
-      countInStock: 8
-    },
-    {
-      _id: '4',
-      name: "Handmade Leather Journal",
-      artisan: {
-        _id: 'a4',
-        name: "Craft & Stitch"
-      },
-      price: 49.99,
-      image: "https://images.unsplash.com/photo-1544816155-12df9643f363?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-      category: "Leatherwork",
-      rating: 4.6,
-      numReviews: 78,
-      countInStock: 15
-    }
-  ];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      const initialProducts = [
+        {
+          id: "d2f7d314-9df6-4c0e-8e9b-1f2b3c4d5e6f",
+          name: "Hand-carved Wooden Bowl",
+          artisan: {
+            id: "a1f2b3c4-d5e6-4f7a-8b9c-0d1e2f3a4b5c",
+            name: "Thomas Woodcraft"
+          },
+          price: 89.99,
+          image: "/placeholder-product.jpg",
+          category: "Woodwork",
+          rating: 4.8,
+          numReviews: 124,
+          stock: 10
+        },
+        {
+          id: "e5f6g7h8-9i0j-4k1l-8m9n-2o3p4q5r6s7t",
+          name: "Ceramic Vase Set",
+          artisan: {
+            id: "b2c3d4e5-f6g7-4h8i-9j0k-1l2m3n4o5p6",
+            name: "Elena Pottery"
+          },
+          price: 129.99,
+          image: "/placeholder-product.jpg",
+          category: "Pottery",
+          rating: 4.9,
+          numReviews: 89,
+          stock: 5
+        },
+        {
+          id: "u8v9w0x1-y2z3-4a5b-8c9d-6e7f8g9h0i1j",
+          name: "Handwoven Wool Blanket",
+          artisan: {
+            id: "c3d4e5f6-g7h8-4i9j-0k1l-2m3n4o5p6q7",
+            name: "Mountain Textiles"
+          },
+          price: 159.99,
+          image: "/placeholder-product.jpg",
+          category: "Textiles",
+          rating: 4.7,
+          numReviews: 156,
+          stock: 8
+        },
+        {
+          id: "k2l3m4n5-o6p7-4q8r-8s9t-9u0v1w2x3y4z",
+          name: "Handmade Leather Journal",
+          artisan: {
+            id: "d4e5f6g7-h8i9-4j0k-1l2m-3n4o5p6q7r8",
+            name: "Craft & Stitch"
+          },
+          price: 49.99,
+          image: "/placeholder-product.jpg",
+          category: "Leatherwork",
+          rating: 4.6,
+          numReviews: 78,
+          stock: 15
+        }
+      ];
+
+      try {
+        // Load images for each product
+        const productsWithImages = await Promise.all(
+          initialProducts.map(async (product) => {
+            const images = await searchUnsplashImages(product.category + " " + product.name, 1, 1);
+            if (images && images.length > 0) {
+              return {
+                ...product,
+                image: images[0].urls.regular,
+                imageAttribution: createUnsplashAttribution(images[0])
+              };
+            }
+            return product;
+          })
+        );
+
+        setProducts(productsWithImages);
+      } catch (error) {
+        console.error('Error loading product images:', error);
+        setProducts(initialProducts);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
     <section className="py-16 bg-gray-50">
@@ -75,13 +134,13 @@ const FeaturedProducts: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
           {products.map(product => (
-            <ProductCard key={product._id} product={product} />
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
 
         <div className="text-center">
           <Link to="/shop">
-            <Button type="secondary">View All Products</Button>
+            <Button variant="secondary">View All Products</Button>
           </Link>
         </div>
       </div>

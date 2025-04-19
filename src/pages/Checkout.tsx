@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
-import { clearCart } from '../store/slices/cartSlice';
+import { clearCart } from '../store/cartSlice';
 import Button from '../components/Button';
 import api from '../utils/api';
 import toast from 'react-hot-toast';

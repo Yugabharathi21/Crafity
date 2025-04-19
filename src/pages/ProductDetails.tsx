@@ -1,47 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { Star, Minus, Plus, ShoppingCart } from 'lucide-react';
-import { addToCart } from '../store/slices/cartSlice';
+import { addToCart } from '../store/cartSlice';
 import Button from '../components/Button';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
 
 interface Product {
-  _id: string;
+  id: string;
   name: string;
-  price: number;
-  description: string;
   image: string;
-  category: string;
+  price: number;
   countInStock: number;
+  description: string;
+  category: string;
   rating: number;
   numReviews: number;
-  artisan: {
-    _id: string;
-    name: string;
-  };
 }
 
-const ProductDetails = () => {
+const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
-  
   const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const { data } = await api.get(`/products/${id}`);
+        const data = await api.getProductById(id!);
         setProduct(data);
-      } catch (err) {
-        setError('Failed to load product details');
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        toast.error('Failed to load product details');
       } finally {
         setLoading(false);
       }
@@ -50,120 +42,134 @@ const ProductDetails = () => {
     fetchProduct();
   }, [id]);
 
-  const handleQuantityChange = (value: number) => {
-    if (product && value >= 1 && value <= product.countInStock) {
-      setQuantity(value);
+  const handleQuantityChange = (change: number) => {
+    const newQuantity = quantity + change;
+    if (newQuantity >= 1 && newQuantity <= (product?.countInStock || 0)) {
+      setQuantity(newQuantity);
     }
   };
 
-  const handleAddToCart = () => {
-    if (product) {
-      dispatch(addToCart({
-        id: product._id,
-        name: product.name,
-        image: product.image,
-        price: product.price,
-        quantity,
-        countInStock: product.countInStock
-      }));
-      toast.success('Added to cart');
+  const handleAddToCart = async () => {
+    if (!product) return;
+
+    try {
+      await dispatch(addToCart({
+        product_id: product.id,
+        quantity
+      })).unwrap();
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add item to cart');
     }
   };
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          <div className="md:w-1/2">
-            <Skeleton height={400} />
-          </div>
-          <div className="md:w-1/2">
-            <Skeleton height={40} width={300} className="mb-4" />
-            <Skeleton height={30} width={150} className="mb-4" />
-            <Skeleton height={100} className="mb-4" />
-            <Skeleton height={40} width={200} className="mb-4" />
-            <Skeleton height={50} width={250} />
-          </div>
-        </div>
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
-  if (error || !product) {
+  if (!product) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <h2 className="text-2xl font-bold mb-4">Error</h2>
-        <p className="mb-4">{error || 'Product not found'}</p>
-        <Button onClick={() => navigate('/shop')}>Return to Shop</Button>
+      <div className="text-center py-8">
+        <h2 className="text-2xl font-semibold text-red-600">Product not found</h2>
+        <p className="text-gray-600 mt-2">The product you're looking for doesn't exist or has been removed.</p>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="md:w-1/2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-[500px] object-cover rounded-lg"
+            className="w-full h-96 object-cover rounded-lg"
           />
         </div>
-
-        <div className="md:w-1/2">
+        
+        <div>
           <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
           
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center mb-4">
             <div className="flex items-center">
               {[...Array(5)].map((_, index) => (
                 <Star
                   key={index}
-                  size={20}
-                  className={index < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}
+                  className={`w-5 h-5 ${
+                    index < Math.floor(product.rating)
+                      ? 'text-yellow-400 fill-current'
+                      : 'text-gray-300'
+                  }`}
                 />
               ))}
             </div>
-            <span className="text-gray-600">({product.numReviews} reviews)</span>
+            <span className="ml-2 text-gray-600">
+              ({product.numReviews} reviews)
+            </span>
           </div>
-
-          <p className="text-2xl font-bold mb-4">${product.price.toFixed(2)}</p>
-
+          
+          <p className="text-2xl font-semibold mb-4">${product.price.toFixed(2)}</p>
+          
           <p className="text-gray-600 mb-6">{product.description}</p>
-
+          
           <div className="mb-6">
-            <p className="font-semibold mb-2">Category: {product.category}</p>
-            <p className="font-semibold">Artisan: {product.artisan.name}</p>
-          </div>
-
-          {product.countInStock > 0 ? (
-            <>
-              <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center border rounded-lg">
                 <button
-                  onClick={() => handleQuantityChange(quantity - 1)}
-                  className="p-2 rounded-full hover:bg-gray-100"
+                  onClick={() => handleQuantityChange(-1)}
+                  className="p-2 hover:bg-gray-100 rounded-l-lg"
+                  disabled={quantity <= 1}
                 >
-                  <Minus size={20} />
+                  <Minus className="w-4 h-4" />
                 </button>
-                <span className="w-12 text-center">{quantity}</span>
+                <span className="px-4 py-2 text-center min-w-[40px]">
+                  {quantity}
+                </span>
                 <button
-                  onClick={() => handleQuantityChange(quantity + 1)}
-                  className="p-2 rounded-full hover:bg-gray-100"
+                  onClick={() => handleQuantityChange(1)}
+                  className="p-2 hover:bg-gray-100 rounded-r-lg"
+                  disabled={quantity >= product.countInStock}
                 >
-                  <Plus size={20} />
+                  <Plus className="w-4 h-4" />
                 </button>
               </div>
-
+              
               <Button
                 onClick={handleAddToCart}
-                className="flex items-center justify-center gap-2"
+                disabled={product.countInStock === 0}
+                className="flex items-center gap-2"
               >
-                <ShoppingCart size={20} />
-                Add to Cart
+                <ShoppingCart className="w-5 h-5" />
+                {product.countInStock > 0 ? 'Add to Cart' : 'Out of Stock'}
               </Button>
-            </>
-          ) : (
-            <p className="text-red-500 font-semibold">Out of Stock</p>
-          )}
+            </div>
+            
+            {product.countInStock <= 5 && product.countInStock > 0 && (
+              <p className="text-sm text-red-600">
+                Only {product.countInStock} left in stock
+              </p>
+            )}
+          </div>
+          
+          <div className="border-t pt-6">
+            <h2 className="text-lg font-semibold mb-2">Product Details</h2>
+            <div className="grid grid-cols-2 gap-4 text-gray-600">
+              <div>
+                <span className="font-medium">Category:</span>
+                <span className="ml-2">{product.category}</span>
+              </div>
+              <div>
+                <span className="font-medium">Stock:</span>
+                <span className="ml-2">
+                  {product.countInStock > 0 ? 'In Stock' : 'Out of Stock'}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
