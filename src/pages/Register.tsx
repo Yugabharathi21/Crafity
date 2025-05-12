@@ -1,164 +1,222 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import Button from '../components/Button';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Package, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '@/context/AuthContext';
+
+const registerSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+  confirmPassword: z.string(),
+  agreeTerms: z.literal(true, {
+    errorMap: () => ({ message: 'You must agree to the terms and conditions' }),
+  }),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ['confirmPassword'],
+});
+
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register: React.FC = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isArtisan, setIsArtisan] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
-  const [emailError, setEmailError] = useState('');
-  
-  const { register, user, loading, error } = useAuth();
+  const { register: registerUser, isLoading, error } = useAuth();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      agreeTerms: false,
+    },
+  });
 
-  useEffect(() => {
-    if (user) {
+  const onSubmit = async (data: RegisterFormValues) => {
+    try {
+      await registerUser(data.name, data.email, data.password);
       navigate('/dashboard');
+    } catch (error) {
+      // Error is handled by the AuthContext
     }
-  }, [user, navigate]);
-
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setEmailError('Please enter a valid email address');
-      return false;
-    }
-    setEmailError('');
-    return true;
-  };
-
-  const validatePassword = () => {
-    if (password !== confirmPassword) {
-      setPasswordError('Passwords do not match');
-      return false;
-    }
-    if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
-      return false;
-    }
-    setPasswordError('');
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword();
-    
-    if (!isEmailValid || !isPasswordValid) {
-      return;
-    }
-    
-    await register(name, email.trim(), password, isArtisan);
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-        <div className="auth-form-container">
-          <h1 className="auth-title">Create an Account</h1>
-          <p className="auth-subtitle">Join our community of craft enthusiasts and artisans.</p>
-          
-          {error && <div className="auth-error">{error}</div>}
-          
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="name">Full Name</label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                placeholder="Enter your full name"
-                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (emailError) validateEmail(e.target.value);
-                }}
-                required
-                placeholder="Enter your email"
-                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-              {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (passwordError) validatePassword();
-                }}
-                required
-                placeholder="Create a password"
-                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  if (passwordError) validatePassword();
-                }}
-                required
-                placeholder="Confirm your password"
-                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-              {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
-            </div>
-            
-            <div className="form-group checkbox-group">
-              <input
-                type="checkbox"
-                id="isArtisan"
-                checked={isArtisan}
-                onChange={(e) => setIsArtisan(e.target.checked)}
-                className="mr-2"
-              />
-              <label htmlFor="isArtisan">I am an artisan/craftsperson</label>
-            </div>
-            
-            <div className="form-action">
-              <Button type="primary" className="auth-button" disabled={loading}>
-                {loading ? 'Creating Account...' : 'Sign Up'}
-              </Button>
-            </div>
-          </form>
-          
-          <div className="auth-redirect">
-            <p>Already have an account? <Link to="/login" className="text-primary-600 hover:text-primary-700">Login</Link></p>
+    <div className="container mx-auto px-4 py-12">
+      <div className="flex justify-center">
+        <div className="w-full max-w-md">
+          <div className="flex justify-center mb-6">
+            <Link to="/" className="flex items-center space-x-2">
+              <Package className="h-8 w-8 text-[#708238]" />
+              <span className="text-2xl font-bold tracking-tight text-[#708238]">Craftify</span>
+            </Link>
           </div>
-        </div>
-        
-        <div className="auth-image">
-          <img 
-            src="https://images.unsplash.com/photo-1621600411688-4be93c2c1208?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
-            alt="Handcrafted items" 
-            className="w-full h-full object-cover"
-          />
+          
+          <div className="bg-card border rounded-lg p-8 shadow-sm">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold tracking-tight">Create an account</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Join Craftify to discover handcrafted treasures
+              </p>
+            </div>
+            
+            {error && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    placeholder="John Doe"
+                    className="pl-10"
+                    {...register('name')}
+                  />
+                </div>
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your.email@example.com"
+                    className="pl-10"
+                    {...register('email')}
+                  />
+                </div>
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    className="pl-10"
+                    {...register('password')}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? 
+                      <EyeOff className="h-5 w-5 text-muted-foreground" /> : 
+                      <Eye className="h-5 w-5 text-muted-foreground" />
+                    }
+                  </Button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password.message}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    className="pl-10"
+                    {...register('confirmPassword')}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? 
+                      <EyeOff className="h-5 w-5 text-muted-foreground" /> : 
+                      <Eye className="h-5 w-5 text-muted-foreground" />
+                    }
+                  </Button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+                )}
+              </div>
+              
+              <div className="flex items-start space-x-2">
+                <Checkbox 
+                  id="agreeTerms"
+                  {...register('agreeTerms')}
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <label
+                    htmlFor="agreeTerms"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    I agree to the{' '}
+                    <Link to="/terms" className="text-[#D36C3F] hover:underline">
+                      Terms of Service
+                    </Link>
+                    {' '}and{' '}
+                    <Link to="/privacy" className="text-[#D36C3F] hover:underline">
+                      Privacy Policy
+                    </Link>
+                  </label>
+                  {errors.agreeTerms && (
+                    <p className="text-sm text-destructive">{errors.agreeTerms.message}</p>
+                  )}
+                </div>
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="w-full bg-[#708238] hover:bg-[#5a6a2e] text-white" 
+                disabled={isLoading}
+              >
+                {isLoading ? 'Creating account...' : 'Create Account'}
+              </Button>
+            </form>
+            
+            <div className="mt-6 text-center text-sm">
+              <p className="text-muted-foreground">
+                Already have an account?{' '}
+                <Link to="/login" className="text-[#D36C3F] hover:underline">
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

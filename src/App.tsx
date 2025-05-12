@@ -1,65 +1,82 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import Shop from './pages/Shop';
-import Categories from './pages/Categories';
-import Artisans from './pages/Artisans';
-import About from './pages/About';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ResetPassword from './pages/ResetPassword';
-import Dashboard from './pages/Dashboard';
-import Cart from './pages/Cart';
-import ProductDetails from './pages/ProductDetails';
-import Checkout from './pages/Checkout';
-import OrderSuccess from './pages/OrderSuccess';
-import ProtectedRoute from './components/ProtectedRoute';
-import ChatAssistant from './components/ChatAssistant';
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from 'next-themes';
+import Layout from '@/components/layout/Layout';
+import Home from '@/pages/Home';
+import Shop from '@/pages/Shop';
+import About from '@/pages/About';
+import Contact from '@/pages/Contact';
+import ProductDetail from '@/pages/ProductDetail';
+import Cart from '@/pages/Cart';
+import Checkout from '@/pages/Checkout';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import Dashboard from '@/pages/Dashboard';
+import AdminDashboard from '@/pages/AdminDashboard';
+import Wishlist from '@/pages/Wishlist';
+import NotFound from '@/pages/NotFound';
+import Terms from '@/pages/Terms';
+import Privacy from '@/pages/Privacy';
+import { AuthProvider } from '@/context/AuthContext';
+import { CartProvider } from '@/context/CartContext';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AdminRoute from '@/components/auth/AdminRoute';
 
-const App: React.FC = () => {
+function App() {
   return (
-    <AuthProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <Toaster position="top-center" />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/artisans" element={<Artisans />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/product/:id" element={<ProductDetails />} />
-            <Route path="/checkout" element={
-              <ProtectedRoute>
-                <Checkout />
-              </ProtectedRoute>
-            } />
-            <Route path="/order-success" element={
-              <ProtectedRoute>
-                <OrderSuccess />
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard/*" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </main>
-        <Footer />
-        <ChatAssistant />
-      </div>
-    </AuthProvider>
+    <ThemeProvider attribute="class" defaultTheme="light">
+      <AuthProvider>
+        <CartProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Home />} />
+                <Route path="shop" element={<Shop />} />
+                <Route path="about" element={<About />} />
+                <Route path="contact" element={<Contact />} />
+                <Route path="shop/category/:categorySlug" element={<Shop />} />
+                <Route path="product/:id" element={<ProductDetail />} />
+                <Route path="cart" element={<Cart />} />
+                <Route path="login" element={<Login />} />
+                <Route path="register" element={<Register />} />
+                <Route path="wishlist" element={<Wishlist />} />
+                <Route path="terms" element={<Terms />} />
+                <Route path="privacy" element={<Privacy />} />
+                
+                {/* Protected Routes */}
+                <Route 
+                  path="checkout" 
+                  element={
+                    <ProtectedRoute>
+                      <Checkout />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="dashboard/*" 
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="admin/*" 
+                  element={
+                    <AdminRoute>
+                      <AdminDashboard />
+                    </AdminRoute>
+                  } 
+                />
+                
+                {/* 404 Route */}
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
-};
+}
 
 export default App;
