@@ -1,15 +1,15 @@
 
-import * as React from "react"
-import { Toaster as Sonner } from "sonner"
+import * as React from "react";
+import { Toaster as SonnerToaster, toast } from "sonner";
 
-type ToasterProps = React.ComponentProps<typeof Sonner>
+type ToasterProps = React.ComponentProps<typeof SonnerToaster>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  // Removed the useTheme hook to eliminate the dependency on next-themes
-  const theme = "light" // Default to light theme
+  // Default to light theme
+  const theme = "light"; 
 
   return (
-    <Sonner
+    <SonnerToaster
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       toastOptions={{
@@ -25,7 +25,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Toaster, toast } from "sonner"
+export { Toaster, toast };

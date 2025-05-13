@@ -2,120 +2,148 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-
-interface User {
-  email: string;
-  userId: string;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  register: (email: string, password: string, name?: string) => Promise<boolean>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Check for existing session on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("crafity-user");
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser({ 
-          email: parsedUser.email,
-          userId: parsedUser.userId || parsedUser.email // Use email as fallback userId
-        });
-      } catch (e) {
-        console.error("Error parsing stored user:", e);
-        localStorage.removeItem("crafity-user");
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        // After auth state change, update localStorage for compatibility with existing code
+        if (currentSession?.user) {
+          const userData = {
+            email: currentSession.user.email,
+            userId: currentSession.user.id, // Store the user ID correctly
+            created_at: currentSession.user.created_at
+          };
+          localStorage.setItem("crafity-user", JSON.stringify(userData));
+        } else {
+          localStorage.removeItem("crafity-user");
+        }
       }
-    }
-    setIsLoading(false);
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      
+      if (currentSession?.user) {
+        const userData = {
+          email: currentSession.user.email,
+          userId: currentSession.user.id, // Store the user ID correctly
+          created_at: currentSession.user.created_at
+        };
+        localStorage.setItem("crafity-user", JSON.stringify(userData));
+      }
+      
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // In a real app, this would validate with a server
     try {
       setIsLoading(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      // For demo, any email/password combination works that matches the format
-      if (!email.includes('@') || password.length < 6) {
-        toast.error("Invalid credentials");
+      if (error) {
+        toast.error(error.message);
         return false;
       }
       
-      const user = { email, userId: email };
-      localStorage.setItem("crafity-user", JSON.stringify(user));
-      setUser(user);
       toast.success("Logged in successfully");
       return true;
     } catch (error) {
-      toast.error("Login failed");
+      console.error("Login error:", error);
+      toast.error("An error occurred during login");
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (email: string, password: string): Promise<boolean> => {
+  const register = async (email: string, password: string, name?: string): Promise<boolean> => {
     try {
       setIsLoading(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name
+          }
+        }
+      });
       
-      // Validation
-      if (!email.includes('@') || password.length < 6) {
-        toast.error("Invalid email or password too short");
+      if (error) {
+        toast.error(error.message);
         return false;
       }
       
-      // Check if user exists
-      const existingUser = localStorage.getItem("crafity-user");
-      if (existingUser) {
-        const parsed = JSON.parse(existingUser);
-        if (parsed.email === email) {
-          toast.error("User with this email already exists");
-          return false;
-        }
+      // Check if email confirmation is required (default in Supabase)
+      if (data.user && !data.session) {
+        toast.info("Please check your email to confirm your account");
+        return true;
       }
-      
-      const user = { email, userId: email };
-      localStorage.setItem("crafity-user", JSON.stringify(user));
-      setUser(user);
+
       toast.success("Account created successfully");
       return true;
     } catch (error) {
-      toast.error("Registration failed");
+      console.error("Registration error:", error);
+      toast.error("An error occurred during registration");
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("crafity-user");
-    setUser(null);
-    toast.success("Logged out successfully");
-    navigate("/login");
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem("crafity-user");
+      toast.success("Logged out successfully");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("An error occurred during logout");
+    }
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        session,
         isAuthenticated: !!user,
         isLoading,
         login,
