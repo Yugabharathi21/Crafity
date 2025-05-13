@@ -1,569 +1,332 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { 
-  CreditCard, 
-  Truck, 
-  ShieldCheck, 
-  Package, 
-  CheckCircle
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useCart } from '@/context/CartContext';
-import { useAuth } from '@/context/AuthContext';
 
-// Form validation schema
-const checkoutSchema = z.object({
-  fullName: z.string().min(2, 'Full name is required'),
-  email: z.string().email('Valid email is required'),
-  phone: z.string().min(10, 'Phone number is required'),
-  address: z.string().min(5, 'Address is required'),
-  city: z.string().min(2, 'City is required'),
-  state: z.string().min(2, 'State is required'),
-  zipCode: z.string().min(5, 'Zip code is required'),
-  paymentMethod: z.enum(['credit_card', 'cod']),
-});
+import { useState } from "react";
+import { Link, Navigate } from "react-router-dom";
+import { useCart } from "@/contexts/CartContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { CreditCard, ArrowLeft, ChevronsUpDown } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { useForm } from "react-hook-form";
 
-type CheckoutFormValues = z.infer<typeof checkoutSchema>;
+const Checkout = () => {
+  const { cart, subtotal, clearCart } = useCart();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentComplete, setPaymentComplete] = useState(false);
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
-enum CheckoutStep {
-  ShippingInfo,
-  PaymentMethod,
-  Review,
-  Success
-}
+  if (cart.length === 0 && !paymentComplete) {
+    return <Navigate to="/cart" />;
+  }
 
-const Checkout: React.FC = () => {
-  const { cart, clearCart } = useCart();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState<CheckoutStep>(CheckoutStep.ShippingInfo);
-  
-  // Calculate order summary
-  const subtotal = cart.totalPrice;
-  const shipping = subtotal >= 50 ? 0 : 4.99;
-  const tax = subtotal * 0.07;
-  const total = subtotal + shipping + tax;
-
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<CheckoutFormValues>({
-    resolver: zodResolver(checkoutSchema),
-    defaultValues: {
-      fullName: user?.name || '',
-      email: user?.email || '',
-      phone: '',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      paymentMethod: 'credit_card',
-    },
-  });
-
-  const watchedValues = watch();
-
-  const onSubmit = (data: CheckoutFormValues) => {
-    // For demo purposes, just move to the success step
-    // In a real app, you would send this data to your backend
-    setCurrentStep(CheckoutStep.Success);
+  const onSubmit = (data: any) => {
+    setIsProcessing(true);
     
-    // Clear the cart after successful checkout
+    // Simulate payment processing
     setTimeout(() => {
+      setIsProcessing(false);
+      setPaymentComplete(true);
       clearCart();
-    }, 500);
+      toast.success("Payment successful! Your order has been placed.");
+    }, 2000);
   };
-
-  const goToNextStep = () => {
-    setCurrentStep(prev => prev + 1);
-  };
-
-  const goToPreviousStep = () => {
-    setCurrentStep(prev => prev - 1);
-  };
-
-  if (cart.items.length === 0 && currentStep !== CheckoutStep.Success) {
+  
+  if (paymentComplete) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto">
-          <Alert className="mb-6">
-            <AlertTitle className="font-semibold">Your cart is empty</AlertTitle>
-            <AlertDescription>
-              You don't have any items in your cart to checkout.
-            </AlertDescription>
-          </Alert>
-          <Button 
-            onClick={() => navigate('/shop')}
-            className="bg-[#708238] hover:bg-[#5a6a2e] text-white"
-          >
-            Continue Shopping
-          </Button>
+      <div className="container py-16 min-h-[50vh] flex flex-col items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+          </svg>
         </div>
+        <h2 className="text-2xl font-bold mb-2">Payment Successful</h2>
+        <p className="text-center text-muted-foreground mb-6 max-w-md">
+          Thank you for your purchase! Your order has been confirmed and will be shipped soon.
+        </p>
+        <Link to="/">
+          <Button>Continue Shopping</Button>
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Checkout Steps */}
-        {currentStep !== CheckoutStep.Success && (
-          <div className="mb-8">
-            <div className="flex justify-between">
-              <div 
-                className={`flex flex-col items-center flex-1 ${
-                  currentStep >= CheckoutStep.ShippingInfo ? 'text-[#708238]' : 'text-muted-foreground'
-                }`}
-              >
-                <div className={`rounded-full w-8 h-8 flex items-center justify-center mb-2 ${
-                  currentStep >= CheckoutStep.ShippingInfo ? 'bg-[#708238] text-white' : 'bg-muted text-muted-foreground'
-                }`}>
-                  1
+    <div className="container py-16">
+      <h1 className="text-3xl font-bold mb-6">Checkout</h1>
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="lg:w-2/3">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold">Shipping Information</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input 
+                    id="firstName"
+                    {...register("firstName", { required: "First name is required" })}
+                  />
+                  {errors.firstName && (
+                    <p className="text-sm text-red-500">{errors.firstName.message as string}</p>
+                  )}
                 </div>
-                <span className="text-sm">Shipping</span>
-              </div>
-              <div className="flex-1 flex items-center justify-center pt-4">
-                <div className={`h-0.5 w-full ${
-                  currentStep >= CheckoutStep.PaymentMethod ? 'bg-[#708238]' : 'bg-muted'
-                }`}></div>
-              </div>
-              <div 
-                className={`flex flex-col items-center flex-1 ${
-                  currentStep >= CheckoutStep.PaymentMethod ? 'text-[#708238]' : 'text-muted-foreground'
-                }`}
-              >
-                <div className={`rounded-full w-8 h-8 flex items-center justify-center mb-2 ${
-                  currentStep >= CheckoutStep.PaymentMethod ? 'bg-[#708238] text-white' : 'bg-muted text-muted-foreground'
-                }`}>
-                  2
-                </div>
-                <span className="text-sm">Payment</span>
-              </div>
-              <div className="flex-1 flex items-center justify-center pt-4">
-                <div className={`h-0.5 w-full ${
-                  currentStep >= CheckoutStep.Review ? 'bg-[#708238]' : 'bg-muted'
-                }`}></div>
-              </div>
-              <div 
-                className={`flex flex-col items-center flex-1 ${
-                  currentStep >= CheckoutStep.Review ? 'text-[#708238]' : 'text-muted-foreground'
-                }`}
-              >
-                <div className={`rounded-full w-8 h-8 flex items-center justify-center mb-2 ${
-                  currentStep >= CheckoutStep.Review ? 'bg-[#708238] text-white' : 'bg-muted text-muted-foreground'
-                }`}>
-                  3
-                </div>
-                <span className="text-sm">Review</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Checkout Form */}
-            <div className="lg:col-span-2">
-              <div className="bg-card border rounded-lg p-6">
-                {/* Shipping Information Step */}
-                {currentStep === CheckoutStep.ShippingInfo && (
-                  <div>
-                    <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="fullName">Full Name</Label>
-                        <Input
-                          id="fullName"
-                          {...register('fullName')}
-                          placeholder="John Doe"
-                        />
-                        {errors.fullName && (
-                          <p className="text-sm text-destructive">{errors.fullName.message}</p>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          {...register('email')}
-                          placeholder="your.email@example.com"
-                        />
-                        {errors.email && (
-                          <p className="text-sm text-destructive">{errors.email.message}</p>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                          id="phone"
-                          {...register('phone')}
-                          placeholder="(555) 123-4567"
-                        />
-                        {errors.phone && (
-                          <p className="text-sm text-destructive">{errors.phone.message}</p>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="address">Street Address</Label>
-                        <Input
-                          id="address"
-                          {...register('address')}
-                          placeholder="123 Main St, Apt 4B"
-                        />
-                        {errors.address && (
-                          <p className="text-sm text-destructive">{errors.address.message}</p>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="city">City</Label>
-                        <Input
-                          id="city"
-                          {...register('city')}
-                          placeholder="New York"
-                        />
-                        {errors.city && (
-                          <p className="text-sm text-destructive">{errors.city.message}</p>
-                        )}
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="state">State</Label>
-                          <Input
-                            id="state"
-                            {...register('state')}
-                            placeholder="NY"
-                          />
-                          {errors.state && (
-                            <p className="text-sm text-destructive">{errors.state.message}</p>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="zipCode">Zip Code</Label>
-                          <Input
-                            id="zipCode"
-                            {...register('zipCode')}
-                            placeholder="10001"
-                          />
-                          {errors.zipCode && (
-                            <p className="text-sm text-destructive">{errors.zipCode.message}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6 flex justify-end">
-                      <Button 
-                        type="button" 
-                        onClick={goToNextStep}
-                        className="bg-[#708238] hover:bg-[#5a6a2e] text-white"
-                      >
-                        Continue to Payment
-                      </Button>
-                    </div>
-                  </div>
-                )}
                 
-                {/* Payment Method Step */}
-                {currentStep === CheckoutStep.PaymentMethod && (
-                  <div>
-                    <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
-                    
-                    <RadioGroup 
-                      defaultValue={watchedValues.paymentMethod}
-                      className="space-y-4"
-                      {...register('paymentMethod')}
-                    >
-                      <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/40 transition-colors">
-                        <RadioGroupItem value="credit_card" id="credit_card" />
-                        <Label 
-                          htmlFor="credit_card" 
-                          className="flex-1 flex items-center cursor-pointer"
-                        >
-                          <CreditCard className="h-5 w-5 mr-2 text-[#708238]" />
-                          Credit / Debit Card
-                        </Label>
-                        <div className="flex space-x-1">
-                          <div className="w-10 h-6 bg-[#1434CB] rounded"></div>
-                          <div className="w-10 h-6 bg-[#FF5F00] rounded"></div>
-                          <div className="w-10 h-6 bg-[#2DC160] rounded"></div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/40 transition-colors">
-                        <RadioGroupItem value="cod" id="cod" />
-                        <Label 
-                          htmlFor="cod" 
-                          className="flex-1 flex items-center cursor-pointer"
-                        >
-                          <Package className="h-5 w-5 mr-2 text-[#708238]" />
-                          Cash on Delivery
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                    
-                    {watchedValues.paymentMethod === 'credit_card' && (
-                      <div className="mt-6 space-y-4 p-4 border rounded-lg bg-muted/20">
-                        <div className="space-y-2">
-                          <Label htmlFor="card_number">Card Number</Label>
-                          <Input
-                            id="card_number"
-                            placeholder="1234 5678 9012 3456"
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="expiry">Expiry Date</Label>
-                            <Input
-                              id="expiry"
-                              placeholder="MM/YY"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="cvc">CVC</Label>
-                            <Input
-                              id="cvc"
-                              placeholder="123"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="name_on_card">Name on Card</Label>
-                          <Input
-                            id="name_on_card"
-                            placeholder="John Doe"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="mt-6 flex justify-between">
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={goToPreviousStep}
-                      >
-                        Back to Shipping
-                      </Button>
-                      <Button 
-                        type="button" 
-                        onClick={goToNextStep}
-                        className="bg-[#708238] hover:bg-[#5a6a2e] text-white"
-                      >
-                        Review Order
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input 
+                    id="lastName"
+                    {...register("lastName", { required: "Last name is required" })}
+                  />
+                  {errors.lastName && (
+                    <p className="text-sm text-red-500">{errors.lastName.message as string}</p>
+                  )}
+                </div>
                 
-                {/* Review Order Step */}
-                {currentStep === CheckoutStep.Review && (
-                  <div>
-                    <h2 className="text-xl font-semibold mb-4">Review Your Order</h2>
-                    
-                    <div className="space-y-6">
-                      {/* Shipping Information */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-medium">Shipping Information</h3>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setCurrentStep(CheckoutStep.ShippingInfo)}
-                            className="text-[#D36C3F] h-8"
-                          >
-                            Edit
-                          </Button>
-                        </div>
-                        <div className="bg-muted/20 rounded-lg p-4 text-sm">
-                          <p className="font-medium">{watchedValues.fullName}</p>
-                          <p>{watchedValues.email}</p>
-                          <p>{watchedValues.phone}</p>
-                          <p className="mt-2">{watchedValues.address}</p>
-                          <p>{`${watchedValues.city}, ${watchedValues.state} ${watchedValues.zipCode}`}</p>
-                        </div>
-                      </div>
-                      
-                      {/* Payment Method */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-medium">Payment Method</h3>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setCurrentStep(CheckoutStep.PaymentMethod)}
-                            className="text-[#D36C3F] h-8"
-                          >
-                            Edit
-                          </Button>
-                        </div>
-                        <div className="bg-muted/20 rounded-lg p-4 text-sm flex items-center">
-                          {watchedValues.paymentMethod === 'credit_card' ? (
-                            <>
-                              <CreditCard className="h-5 w-5 mr-2 text-[#708238]" />
-                              <span>Credit / Debit Card (ending in 3456)</span>
-                            </>
-                          ) : (
-                            <>
-                              <Package className="h-5 w-5 mr-2 text-[#708238]" />
-                              <span>Cash on Delivery</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Order Items */}
-                      <div>
-                        <h3 className="font-medium mb-2">Order Items</h3>
-                        <div className="border rounded-lg divide-y">
-                          {cart.items.map((item) => (
-                            <div key={item.productId} className="flex items-center p-4 gap-4">
-                              <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-medium truncate">{item.name}</h4>
-                                <p className="text-sm text-muted-foreground">
-                                  Qty: {item.quantity} × ${item.price.toFixed(2)}
-                                </p>
-                              </div>
-                              <div className="font-semibold">
-                                ${(item.price * item.quantity).toFixed(2)}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6 flex justify-between">
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={goToPreviousStep}
-                      >
-                        Back to Payment
-                      </Button>
-                      <Button 
-                        type="submit"
-                        className="bg-[#708238] hover:bg-[#5a6a2e] text-white"
-                      >
-                        Place Order
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input 
+                    id="email"
+                    type="email"
+                    {...register("email", { 
+                      required: "Email is required",
+                      pattern: {
+                        value: /\S+@\S+\.\S+/,
+                        message: "Please enter a valid email"
+                      }
+                    })}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-red-500">{errors.email.message as string}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input 
+                    id="phone"
+                    {...register("phone", { required: "Phone number is required" })}
+                  />
+                  {errors.phone && (
+                    <p className="text-sm text-red-500">{errors.phone.message as string}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input 
+                    id="address"
+                    {...register("address", { required: "Address is required" })}
+                  />
+                  {errors.address && (
+                    <p className="text-sm text-red-500">{errors.address.message as string}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input 
+                    id="city"
+                    {...register("city", { required: "City is required" })}
+                  />
+                  {errors.city && (
+                    <p className="text-sm text-red-500">{errors.city.message as string}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="zipCode">ZIP / Postal Code</Label>
+                  <Input 
+                    id="zipCode"
+                    {...register("zipCode", { required: "ZIP code is required" })}
+                  />
+                  {errors.zipCode && (
+                    <p className="text-sm text-red-500">{errors.zipCode.message as string}</p>
+                  )}
+                </div>
               </div>
             </div>
             
-            {/* Order Summary */}
-            {currentStep !== CheckoutStep.Success && (
-              <div className="lg:col-span-1">
-                <div className="bg-card border rounded-lg p-6 sticky top-24">
-                  <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-                  
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Subtotal ({cart.totalItems} items)</span>
-                      <span>${subtotal.toFixed(2)}</span>
-                    </div>
-                    
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Shipping</span>
-                      <span>
-                        {shipping === 0 ? (
-                          <span className="text-green-500">Free</span>
-                        ) : (
-                          `$${shipping.toFixed(2)}`
-                        )}
-                      </span>
-                    </div>
-                    
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Tax</span>
-                      <span>${tax.toFixed(2)}</span>
-                    </div>
-                    
-                    <Separator className="my-3" />
-                    
-                    <div className="flex justify-between font-semibold">
-                      <span>Total</span>
-                      <span>${total.toFixed(2)}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 space-y-4 text-sm text-muted-foreground">
-                    <div className="flex items-start space-x-2">
-                      <Truck className="h-4 w-4 text-[#708238] mt-0.5 flex-shrink-0" />
-                      <span>Free shipping on orders over $50</span>
-                    </div>
-                    <div className="flex items-start space-x-2">
-                      <ShieldCheck className="h-4 w-4 text-[#708238] mt-0.5 flex-shrink-0" />
-                      <span>Secure checkout with encrypted payment processing</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            <Separator />
             
-            {/* Order Success Step */}
-            {currentStep === CheckoutStep.Success && (
-              <div className="lg:col-span-3">
-                <div className="bg-card border rounded-lg p-8 text-center">
-                  <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                  </div>
-                  
-                  <h2 className="text-2xl font-bold mb-2">Order Placed Successfully!</h2>
-                  <p className="text-muted-foreground mb-6">
-                    Thank you for your order. We've received your order and will begin processing it soon.
-                  </p>
-                  
-                  <div className="max-w-md mx-auto bg-muted/20 rounded-lg p-4 mb-6">
-                    <p className="font-medium">Order #CRF-{Date.now().toString().slice(-8)}</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      A confirmation email has been sent to {watchedValues.email}
-                    </p>
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row justify-center gap-4">
-                    <Button asChild variant="outline">
-                      <div onClick={() => navigate('/dashboard/orders')}>
-                        View Order
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold">Payment Method</h2>
+              
+              <div className="space-y-4">
+                <div className="p-4 border rounded-md flex items-start gap-4">
+                  <input
+                    type="radio"
+                    id="card"
+                    name="paymentMethod"
+                    checked
+                    readOnly
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <label htmlFor="card" className="flex items-center gap-2 font-medium">
+                      <CreditCard className="h-4 w-4" /> Credit/Debit Card
+                    </label>
+                    
+                    <div className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="cardNumber">Card Number</Label>
+                        <Input 
+                          id="cardNumber"
+                          placeholder="1234 5678 9012 3456"
+                          {...register("cardNumber", { 
+                            required: "Card number is required", 
+                            pattern: { 
+                              value: /^[0-9]{16}$/, 
+                              message: "Please enter a valid 16-digit card number" 
+                            } 
+                          })}
+                        />
+                        {errors.cardNumber && (
+                          <p className="text-sm text-red-500">{errors.cardNumber.message as string}</p>
+                        )}
                       </div>
-                    </Button>
-                    <Button 
-                      asChild
-                      className="bg-[#708238] hover:bg-[#5a6a2e] text-white"
-                    >
-                      <div onClick={() => navigate('/shop')}>
-                        Continue Shopping
+                      
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="col-span-1 space-y-2">
+                          <Label htmlFor="expMonth">Month</Label>
+                          <div className="relative">
+                            <select
+                              id="expMonth"
+                              className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm appearance-none"
+                              {...register("expMonth", { required: "Required" })}
+                            >
+                              {Array.from({ length: 12 }, (_, i) => {
+                                const month = i + 1;
+                                return (
+                                  <option key={month} value={month.toString().padStart(2, '0')}>
+                                    {month.toString().padStart(2, '0')}
+                                  </option>
+                                );
+                              })}
+                            </select>
+                            <ChevronsUpDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50" />
+                          </div>
+                        </div>
+                        
+                        <div className="col-span-1 space-y-2">
+                          <Label htmlFor="expYear">Year</Label>
+                          <div className="relative">
+                            <select
+                              id="expYear"
+                              className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm appearance-none"
+                              {...register("expYear", { required: "Required" })}
+                            >
+                              {Array.from({ length: 10 }, (_, i) => {
+                                const year = new Date().getFullYear() + i;
+                                return (
+                                  <option key={year} value={year}>
+                                    {year}
+                                  </option>
+                                );
+                              })}
+                            </select>
+                            <ChevronsUpDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50" />
+                          </div>
+                        </div>
+                        
+                        <div className="col-span-1 space-y-2">
+                          <Label htmlFor="cvv">CVV</Label>
+                          <Input 
+                            id="cvv"
+                            type="password" 
+                            placeholder="123"
+                            maxLength={4}
+                            {...register("cvv", { 
+                              required: "CVV is required", 
+                              pattern: { 
+                                value: /^[0-9]{3,4}$/, 
+                                message: "Please enter a valid CVV" 
+                              } 
+                            })}
+                          />
+                          {errors.cvv && (
+                            <p className="text-sm text-red-500">{errors.cvv.message as string}</p>
+                          )}
+                        </div>
                       </div>
-                    </Button>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="nameOnCard">Name on Card</Label>
+                        <Input 
+                          id="nameOnCard"
+                          {...register("nameOnCard", { required: "Name on card is required" })}
+                        />
+                        {errors.nameOnCard && (
+                          <p className="text-sm text-red-500">{errors.nameOnCard.message as string}</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+            
+            <div className="flex gap-4 justify-between pt-4">
+              <Link to="/cart">
+                <Button type="button" variant="outline" className="gap-2">
+                  <ArrowLeft size={16} /> Return to Cart
+                </Button>
+              </Link>
+              <Button type="submit" disabled={isProcessing} className="min-w-[150px]">
+                {isProcessing ? "Processing..." : "Place Order"}
+              </Button>
+            </div>
+          </form>
+        </div>
+        
+        <div className="lg:w-1/3">
+          <div className="rounded-lg border p-6 bg-muted/10 space-y-4 sticky top-20">
+            <h3 className="text-lg font-bold">Order Summary</h3>
+            
+            <div className="space-y-3 max-h-80 overflow-y-auto">
+              {cart.map((item) => (
+                <div key={item.id} className="flex gap-3">
+                  <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
+                    <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium line-clamp-2">{item.title}</h4>
+                    <div className="flex justify-between mt-1">
+                      <span className="text-sm text-muted-foreground">Qty: {item.quantity}</span>
+                      <span className="text-sm font-medium">${(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <Separator />
+            
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Shipping</span>
+                <span className="text-green-600">Free</span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Tax</span>
+                <span>${(subtotal * 0.08).toFixed(2)}</span>
+              </div>
+              
+              <Separator />
+              
+              <div className="flex justify-between font-bold pt-1">
+                <span>Total</span>
+                <span>${(subtotal + subtotal * 0.08).toFixed(2)}</span>
+              </div>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
